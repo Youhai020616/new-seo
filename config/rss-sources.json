@@ -1,0 +1,19 @@
+{
+  "sources": [
+    {
+      "name": "Channel NewsAsia",
+      "url": "https://www.channelnewsasia.com/api/v1/rss-outbound-feed",
+      "region": "singapore"
+    },
+    {
+      "name": "BBC News",
+      "url": "http://feeds.bbci.co.uk/news/rss.xml",
+      "region": "singapore"
+    },
+    {
+      "name": "TechCrunch",
+      "url": "https://techcrunch.com/feed/",
+      "region": "singapore"
+    }
+  ]
+}

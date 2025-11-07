@@ -1,0 +1,8 @@
+{
+  "keywords": [
+    { "word": "tesla", "frequency": 5, "tfidf": 1.9 },
+    { "word": "shareholders", "frequency": 3, "tfidf": 1.5 },
+    { "word": "musk", "frequency": 4, "tfidf": 1.7 }
+  ],
+  "summary": "Tesla shareholders have approved a massive compensation package for CEO Elon Musk, despite controversy over the deal's size. The vote marks a significant victory for Musk and the company's board."
+}
