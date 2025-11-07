@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { NewsItem, Keyword, Region } from '@/types';
 
 interface NewsStore {
@@ -17,6 +18,11 @@ interface NewsStore {
   seoMeta: Array<{ description: string; score: number }>;
   seoLoading: boolean;
 
+  // 页面联动数据
+  selectedNews: NewsItem | null;
+  extractedKeywords: Keyword[];
+  analysisSource: string; // 'news' | 'keywords' | 'direct'
+
   // Actions
   setNews: (news: NewsItem[]) => void;
   setSelectedRegion: (region: Region) => void;
@@ -27,33 +33,17 @@ interface NewsStore {
   setSeoTitles: (titles: Array<{ title: string; score: number }>) => void;
   setSeoMeta: (meta: Array<{ description: string; score: number }>) => void;
   setSeoLoading: (loading: boolean) => void;
+  setSelectedNews: (news: NewsItem | null) => void;
+  setExtractedKeywords: (keywords: Keyword[]) => void;
+  setAnalysisSource: (source: string) => void;
+  clearAnalysis: () => void;
   reset: () => void;
 }
 
-export const useNewsStore = create<NewsStore>((set) => ({
-  // 初始状态
-  news: [],
-  selectedRegion: 'all',
-  loading: false,
-  error: null,
-  keywords: [],
-  keywordsLoading: false,
-  seoTitles: [],
-  seoMeta: [],
-  seoLoading: false,
-
-  // Actions
-  setNews: (news) => set({ news }),
-  setSelectedRegion: (region) => set({ selectedRegion: region }),
-  setLoading: (loading) => set({ loading }),
-  setError: (error) => set({ error }),
-  setKeywords: (keywords) => set({ keywords }),
-  setKeywordsLoading: (loading) => set({ keywordsLoading: loading }),
-  setSeoTitles: (titles) => set({ seoTitles: titles }),
-  setSeoMeta: (meta) => set({ seoMeta: meta }),
-  setSeoLoading: (loading) => set({ seoLoading: loading }),
-  reset: () =>
-    set({
+export const useNewsStore = create<NewsStore>()(
+  persist(
+    (set) => ({
+      // 初始状态
       news: [],
       selectedRegion: 'all',
       loading: false,
@@ -63,5 +53,54 @@ export const useNewsStore = create<NewsStore>((set) => ({
       seoTitles: [],
       seoMeta: [],
       seoLoading: false,
+      selectedNews: null,
+      extractedKeywords: [],
+      analysisSource: 'direct',
+
+      // Actions
+      setNews: (news) => set({ news }),
+      setSelectedRegion: (region) => set({ selectedRegion: region }),
+      setLoading: (loading) => set({ loading }),
+      setError: (error) => set({ error }),
+      setKeywords: (keywords) => set({ keywords }),
+      setKeywordsLoading: (loading) => set({ keywordsLoading: loading }),
+      setSeoTitles: (titles) => set({ seoTitles: titles }),
+      setSeoMeta: (meta) => set({ seoMeta: meta }),
+      setSeoLoading: (loading) => set({ seoLoading: loading }),
+      setSelectedNews: (news) => set({ selectedNews: news }),
+      setExtractedKeywords: (keywords) => set({ extractedKeywords: keywords }),
+      setAnalysisSource: (source) => set({ analysisSource: source }),
+      clearAnalysis: () =>
+        set({
+          selectedNews: null,
+          extractedKeywords: [],
+          keywords: [],
+          seoTitles: [],
+          seoMeta: [],
+        }),
+      reset: () =>
+        set({
+          news: [],
+          selectedRegion: 'all',
+          loading: false,
+          error: null,
+          keywords: [],
+          keywordsLoading: false,
+          seoTitles: [],
+          seoMeta: [],
+          seoLoading: false,
+          selectedNews: null,
+          extractedKeywords: [],
+          analysisSource: 'direct',
+        }),
     }),
-}));
+    {
+      name: 'news-seo-storage',
+      partialize: (state) => ({
+        selectedNews: state.selectedNews,
+        extractedKeywords: state.extractedKeywords,
+        analysisSource: state.analysisSource,
+      }),
+    }
+  )
+);

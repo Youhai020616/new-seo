@@ -14,6 +14,31 @@
       "name": "TechCrunch",
       "url": "https://techcrunch.com/feed/",
       "region": "singapore"
+    },
+    {
+      "name": "新浪新闻",
+      "url": "https://news.sina.com.cn/roll/rollnews.xml",
+      "region": "shanghai"
+    },
+    {
+      "name": "网易新闻",
+      "url": "https://news.163.com/special/00011K6L/rss_newstop.xml",
+      "region": "shanghai"
+    },
+    {
+      "name": "搜狐新闻",
+      "url": "https://news.sohu.com/rss/rss.xml",
+      "region": "shanghai"
+    },
+    {
+      "name": "人民网",
+      "url": "http://www.people.com.cn/rss/politics.xml",
+      "region": "shanghai"
+    },
+    {
+      "name": "澎湃新闻",
+      "url": "https://www.thepaper.cn/rss.jsp",
+      "region": "shanghai"
     }
   ]
 }

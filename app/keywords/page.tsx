@@ -1,16 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Keyword } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import KeywordCloud from '@/components/KeywordCloud';
+import KeywordChart from '@/components/KeywordChart';
+import Breadcrumb from '@/components/Breadcrumb';
+import { useNewsStore } from '@/store/useNewsStore';
+import { useI18n } from '@/lib/i18n/context';
+
+type VisualizationType = 'list' | 'cloud' | 'chart';
 
 export default function KeywordsPage() {
+  const { t } = useI18n();
+  const router = useRouter();
+  const { selectedNews, analysisSource, setExtractedKeywords, setSelectedNews, setAnalysisSource } = useNewsStore();
+
   const [inputText, setInputText] = useState('');
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [visualType, setVisualType] = useState<VisualizationType>('list');
+  const [dataFromNews, setDataFromNews] = useState(false);
 
   const extractKeywords = async () => {
     if (!inputText.trim()) {
@@ -31,6 +45,8 @@ export default function KeywordsPage() {
       const data = await response.json();
       if (data.success) {
         setKeywords(data.keywords);
+        // 保存到 store
+        setExtractedKeywords(data.keywords);
       } else {
         setError(data.error || 'Failed to extract keywords');
       }
@@ -46,30 +62,112 @@ export default function KeywordsPage() {
     setInputText('');
     setKeywords([]);
     setError(null);
+    setDataFromNews(false);
+    setSelectedNews(null);
   };
+
+  const navigateToSEO = () => {
+    if (keywords.length > 0) {
+      setExtractedKeywords(keywords);
+      setAnalysisSource('keywords');
+      router.push('/seo');
+    }
+  };
+
+  // 自动检测并填充来自 News 页面的数据
+  useEffect(() => {
+    if (selectedNews && analysisSource === 'news') {
+      const newsText = `${selectedNews.title}\n\n${selectedNews.summary}`;
+      setInputText(newsText);
+      setDataFromNews(true);
+
+      // 自动触发关键词提取
+      setTimeout(() => {
+        const autoExtract = async () => {
+          setLoading(true);
+          setError(null);
+
+          try {
+            const response = await fetch('/api/keywords', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ texts: [newsText] }),
+            });
+
+            const data = await response.json();
+            if (data.success) {
+              setKeywords(data.keywords);
+              setExtractedKeywords(data.keywords);
+            }
+          } catch (err) {
+            console.error('Auto-extract error:', err);
+          } finally {
+            setLoading(false);
+          }
+        };
+        autoExtract();
+      }, 100);
+    }
+  }, [selectedNews, analysisSource]);
 
   return (
     <div className="space-y-8">
+      {/* Breadcrumb */}
+      {dataFromNews && selectedNews && (
+        <Breadcrumb
+          items={[
+            { label: t.nav.news, href: '/' },
+            { label: t.nav.keywords, active: true },
+          ]}
+        />
+      )}
+
       {/* Header */}
       <div>
-        <h1 className="text-4xl font-bold text-gray-900">Keyword Extractor</h1>
+        <h1 className="text-4xl font-bold text-gray-900">{t.keywords.title}</h1>
         <p className="mt-2 text-lg text-gray-600">
-          Extract top keywords using TF-IDF algorithm
+          {t.keywords.subtitle}
         </p>
       </div>
+
+      {/* Data Source Notification */}
+      {dataFromNews && selectedNews && (
+        <Card className="bg-blue-50 border-blue-300">
+          <CardContent className="py-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <p className="font-semibold text-blue-900 mb-1">
+                  📰 {t.keywords.analyzingNews}: {selectedNews.source}
+                </p>
+                <p className="text-sm text-blue-700 line-clamp-1">
+                  {selectedNews.title}
+                </p>
+              </div>
+              <Button
+                onClick={clearAll}
+                variant="outline"
+                size="sm"
+                className="shrink-0"
+              >
+                {t.keywords.clear}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Input Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Text Input</CardTitle>
+          <CardTitle>{t.keywords.textInput}</CardTitle>
           <CardDescription>
-            Enter your text content for keyword analysis
+            {t.keywords.textInputDesc}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <textarea
             className="w-full h-64 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-            placeholder="Paste your article, news content, or any text here..."
+            placeholder={t.keywords.placeholder}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
           />
@@ -79,7 +177,7 @@ export default function KeywordsPage() {
               disabled={loading || !inputText.trim()}
               size="lg"
             >
-              {loading ? 'Analyzing...' : '🔍 Extract Keywords'}
+              {loading ? t.keywords.analyzing : `🔍 ${t.keywords.extractKeywords}`}
             </Button>
             <Button
               onClick={clearAll}
@@ -87,7 +185,7 @@ export default function KeywordsPage() {
               size="lg"
               disabled={!inputText && keywords.length === 0}
             >
-              Clear All
+              {t.keywords.clearAll}
             </Button>
           </div>
           {error && (
@@ -101,37 +199,79 @@ export default function KeywordsPage() {
       {/* Results Section */}
       {keywords.length > 0 && (
         <>
+          {/* Generate SEO Button */}
+          <div className="flex justify-end">
+            <Button
+              onClick={navigateToSEO}
+              size="lg"
+              className="gap-2"
+            >
+              ✨ {t.keywords.generateSEO}
+            </Button>
+          </div>
+
           <Card>
             <CardHeader>
-              <CardTitle>Top Keywords (TF-IDF)</CardTitle>
-              <CardDescription>
-                {keywords.length} keywords extracted, sorted by relevance
-              </CardDescription>
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <CardTitle>{t.keywords.topKeywords}</CardTitle>
+                  <CardDescription>
+                    {keywords.length} {t.keywords.keywordsExtracted}
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant={visualType === 'list' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setVisualType('list')}
+                  >
+                    📋 {t.keywords.list}
+                  </Button>
+                  <Button
+                    variant={visualType === 'cloud' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setVisualType('cloud')}
+                  >
+                    ☁️ {t.keywords.cloud}
+                  </Button>
+                  <Button
+                    variant={visualType === 'chart' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setVisualType('chart')}
+                  >
+                    📊 {t.keywords.chart}
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-wrap gap-3">
-                {keywords.map((kw, idx) => (
-                  <Badge
-                    key={idx}
-                    variant="default"
-                    className="text-base py-2 px-4"
-                  >
-                    <span className="font-semibold">{kw.word}</span>
-                    <span className="ml-3 text-sm opacity-75">
-                      Score: {kw.tfidf.toFixed(3)}
-                    </span>
-                  </Badge>
-                ))}
-              </div>
+              {visualType === 'list' && (
+                <div className="flex flex-wrap gap-3">
+                  {keywords.map((kw, idx) => (
+                    <Badge
+                      key={idx}
+                      variant="default"
+                      className="text-base py-2 px-4"
+                    >
+                      <span className="font-semibold">{kw.word}</span>
+                      <span className="ml-3 text-sm opacity-75">
+                        {t.keywords.score}: {kw.tfidf.toFixed(3)}
+                      </span>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              {visualType === 'cloud' && <KeywordCloud keywords={keywords} />}
+              {visualType === 'chart' && <KeywordChart keywords={keywords} type="bar" />}
             </CardContent>
           </Card>
 
           {/* Detailed Table */}
           <Card>
             <CardHeader>
-              <CardTitle>Detailed Analysis</CardTitle>
+              <CardTitle>{t.keywords.detailedAnalysis}</CardTitle>
               <CardDescription>
-                Keyword statistics and metrics
+                {t.keywords.keywordStats}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -140,16 +280,16 @@ export default function KeywordsPage() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                        Rank
+                        {t.keywords.rank}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                        Keyword
+                        {t.keywords.keyword}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                        TF-IDF Score
+                        {t.keywords.tfidfScore}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                        Frequency
+                        {t.keywords.frequency}
                       </th>
                     </tr>
                   </thead>
@@ -183,12 +323,12 @@ export default function KeywordsPage() {
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="pt-6">
             <div className="space-y-2">
-              <h3 className="font-semibold text-blue-900">💡 How to use:</h3>
+              <h3 className="font-semibold text-blue-900">💡 {t.keywords.howToUse}</h3>
               <ul className="list-disc list-inside text-blue-800 space-y-1">
-                <li>Paste your text content in the input area above</li>
-                <li>Click "Extract Keywords" to analyze the text</li>
-                <li>The algorithm will identify the top 10 most relevant keywords</li>
-                <li>Results are sorted by TF-IDF score (higher = more relevant)</li>
+                <li>{t.keywords.step1}</li>
+                <li>{t.keywords.step2}</li>
+                <li>{t.keywords.step3}</li>
+                <li>{t.keywords.step4}</li>
               </ul>
             </div>
           </CardContent>

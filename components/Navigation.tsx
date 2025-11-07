@@ -2,21 +2,24 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useI18n } from '@/lib/i18n/context';
+import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Navigation() {
   const pathname = usePathname();
+  const { t } = useI18n();
 
   const navItems = [
-    { href: '/', label: 'News' },
-    { href: '/keywords', label: 'Keywords' },
-    { href: '/seo', label: 'SEO Assistant' },
+    { href: '/', label: t.nav.news },
+    { href: '/keywords', label: t.nav.keywords },
+    { href: '/seo', label: t.nav.seo },
   ];
 
   return (
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <span className="text-xl font-bold text-blue-600">
                 📰 News SEO Assistant
@@ -49,6 +52,9 @@ export default function Navigation() {
               })}
             </div>
           </div>
+
+          {/* Language Switcher */}
+          <LanguageSwitcher />
         </div>
       </div>
     </nav>

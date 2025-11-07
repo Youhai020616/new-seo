@@ -1,17 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Keyword } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import Breadcrumb from '@/components/Breadcrumb';
+import { useNewsStore } from '@/store/useNewsStore';
+import { useI18n } from '@/lib/i18n/context';
 
 export default function SEOPage() {
+  const { t } = useI18n();
+  const { extractedKeywords, selectedNews, analysisSource, setExtractedKeywords } = useNewsStore();
+
   const [keywordInput, setKeywordInput] = useState('');
   const [summaryInput, setSummaryInput] = useState('');
   const [seoData, setSeoData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dataFromKeywords, setDataFromKeywords] = useState(false);
 
   const generateSEO = async () => {
     if (!keywordInput.trim()) {
@@ -62,39 +69,130 @@ export default function SEOPage() {
     setSummaryInput('');
     setSeoData(null);
     setError(null);
+    setDataFromKeywords(false);
+    setExtractedKeywords([]);
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
 
+  // 自动检测并填充来自 Keywords 页面的数据
+  useEffect(() => {
+    if (extractedKeywords.length > 0 && analysisSource === 'keywords') {
+      // 转换关键词为逗号分隔字符串
+      const keywordsString = extractedKeywords.map(kw => kw.word).join(', ');
+      setKeywordInput(keywordsString);
+      setDataFromKeywords(true);
+
+      // 如果有选中的新闻，使用其摘要
+      if (selectedNews) {
+        setSummaryInput(selectedNews.summary);
+      }
+
+      // 自动触发 SEO 生成
+      setTimeout(() => {
+        const autoGenerate = async () => {
+          setLoading(true);
+          setError(null);
+
+          try {
+            const response = await fetch('/api/seo', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                keywords: extractedKeywords,
+                summary: selectedNews?.summary || 'Generate SEO content based on keywords',
+              }),
+            });
+
+            const data = await response.json();
+            if (data.success) {
+              setSeoData(data);
+            }
+          } catch (err) {
+            console.error('Auto-generate SEO error:', err);
+          } finally {
+            setLoading(false);
+          }
+        };
+        autoGenerate();
+      }, 100);
+    }
+  }, [extractedKeywords, analysisSource, selectedNews]);
+
   return (
     <div className="space-y-8">
+      {/* Breadcrumb */}
+      {dataFromKeywords && extractedKeywords.length > 0 && (
+        <Breadcrumb
+          items={
+            selectedNews
+              ? [
+                  { label: t.nav.news, href: '/' },
+                  { label: t.nav.keywords, href: '/keywords' },
+                  { label: t.nav.seo, active: true },
+                ]
+              : [
+                  { label: t.nav.keywords, href: '/keywords' },
+                  { label: t.nav.seo, active: true },
+                ]
+          }
+        />
+      )}
+
       {/* Header */}
       <div>
-        <h1 className="text-4xl font-bold text-gray-900">SEO Assistant</h1>
+        <h1 className="text-4xl font-bold text-gray-900">{t.seo.title}</h1>
         <p className="mt-2 text-lg text-gray-600">
-          Generate SEO-optimized titles and meta descriptions
+          {t.seo.subtitle}
         </p>
       </div>
+
+      {/* Data Source Notification */}
+      {dataFromKeywords && extractedKeywords.length > 0 && (
+        <Card className="bg-purple-50 border-purple-300">
+          <CardContent className="py-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <p className="font-semibold text-purple-900 mb-1">
+                  🔑 {t.seo.usingKeywords} {extractedKeywords.length} {t.seo.extractedKeywords}
+                </p>
+                <p className="text-sm text-purple-700">
+                  {t.seo.keywordsLabel}: {extractedKeywords.slice(0, 5).map(kw => kw.word).join(', ')}
+                  {extractedKeywords.length > 5 && '...'}
+                </p>
+              </div>
+              <Button
+                onClick={clearAll}
+                variant="outline"
+                size="sm"
+                className="shrink-0"
+              >
+                {t.seo.clear}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Input Section */}
       <Card>
         <CardHeader>
-          <CardTitle>SEO Input</CardTitle>
+          <CardTitle>{t.seo.seoInput}</CardTitle>
           <CardDescription>
-            Enter keywords and optional summary for SEO generation
+            {t.seo.seoInputDesc}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Keywords (comma-separated) *
+              {t.seo.keywordsRequired}
             </label>
             <input
               type="text"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="e.g., technology, artificial intelligence, innovation, future"
+              placeholder={t.seo.keywordsPlaceholder}
               value={keywordInput}
               onChange={(e) => setKeywordInput(e.target.value)}
             />
@@ -102,11 +200,11 @@ export default function SEOPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Summary/Context (optional)
+              {t.seo.summaryLabel}
             </label>
             <textarea
               className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              placeholder="Enter a brief summary or context to help generate more relevant SEO content..."
+              placeholder={t.seo.summaryPlaceholder}
               value={summaryInput}
               onChange={(e) => setSummaryInput(e.target.value)}
             />
@@ -118,7 +216,7 @@ export default function SEOPage() {
               disabled={loading || !keywordInput.trim()}
               size="lg"
             >
-              {loading ? 'Generating...' : '✨ Generate SEO'}
+              {loading ? t.seo.generating : `✨ ${t.seo.generateSEO}`}
             </Button>
             <Button
               onClick={clearAll}
@@ -126,7 +224,7 @@ export default function SEOPage() {
               size="lg"
               disabled={!keywordInput && !summaryInput && !seoData}
             >
-              Clear All
+              {t.seo.clearAll}
             </Button>
           </div>
 
@@ -144,9 +242,9 @@ export default function SEOPage() {
           {/* SEO Titles */}
           <Card>
             <CardHeader>
-              <CardTitle>SEO Title Suggestions</CardTitle>
+              <CardTitle>{t.seo.seoTitles}</CardTitle>
               <CardDescription>
-                Optimized titles (50-60 characters)
+                {t.seo.optimizedTitles}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -165,17 +263,17 @@ export default function SEOPage() {
                         variant="outline"
                         onClick={() => copyToClipboard(item.title)}
                       >
-                        📋 Copy
+                        📋 {t.seo.copy}
                       </Button>
                     </div>
                     <div className="mt-3 flex items-center gap-2 flex-wrap">
                       <Badge
                         variant={item.score >= 80 ? 'success' : item.score >= 60 ? 'warning' : 'danger'}
                       >
-                        Score: {item.score}/100
+                        {t.seo.score}: {item.score}/100
                       </Badge>
                       <span className="text-sm text-gray-500">
-                        Length: {item.title.length} chars
+                        {t.seo.length}: {item.title.length} {t.seo.chars}
                       </span>
                     </div>
                   </div>
@@ -187,9 +285,9 @@ export default function SEOPage() {
           {/* Meta Descriptions */}
           <Card>
             <CardHeader>
-              <CardTitle>Meta Description Suggestions</CardTitle>
+              <CardTitle>{t.seo.metaDescriptions}</CardTitle>
               <CardDescription>
-                Optimized descriptions (150-160 characters)
+                {t.seo.optimizedDesc}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -208,17 +306,17 @@ export default function SEOPage() {
                         variant="outline"
                         onClick={() => copyToClipboard(item.description)}
                       >
-                        📋 Copy
+                        📋 {t.seo.copy}
                       </Button>
                     </div>
                     <div className="mt-3 flex items-center gap-2 flex-wrap">
                       <Badge
                         variant={item.score >= 80 ? 'success' : item.score >= 60 ? 'warning' : 'danger'}
                       >
-                        Score: {item.score}/100
+                        {t.seo.score}: {item.score}/100
                       </Badge>
                       <span className="text-sm text-gray-500">
-                        Length: {item.description.length} chars
+                        {t.seo.length}: {item.description.length} {t.seo.chars}
                       </span>
                     </div>
                   </div>
@@ -232,28 +330,28 @@ export default function SEOPage() {
       {/* Best Practices */}
       <Card className="bg-green-50 border-green-200">
         <CardHeader>
-          <CardTitle className="text-green-900">📖 SEO Best Practices</CardTitle>
+          <CardTitle className="text-green-900">📖 {t.seo.bestPractices}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-2 gap-6 text-green-800">
             <div>
-              <h4 className="font-semibold mb-2">Title Optimization:</h4>
+              <h4 className="font-semibold mb-2">{t.seo.titleOptimization}</h4>
               <ul className="list-disc list-inside space-y-1 text-sm">
-                <li>Keep titles between 50-60 characters</li>
-                <li>Include primary keyword near the beginning</li>
-                <li>Make it compelling and click-worthy</li>
-                <li>Avoid keyword stuffing</li>
-                <li>Use action words and numbers</li>
+                <li>{t.seo.titleTip1}</li>
+                <li>{t.seo.titleTip2}</li>
+                <li>{t.seo.titleTip3}</li>
+                <li>{t.seo.titleTip4}</li>
+                <li>{t.seo.titleTip5}</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-2">Meta Description Tips:</h4>
+              <h4 className="font-semibold mb-2">{t.seo.metaTips}</h4>
               <ul className="list-disc list-inside space-y-1 text-sm">
-                <li>Aim for 150-160 characters</li>
-                <li>Include target keywords naturally</li>
-                <li>Write clear, compelling copy</li>
-                <li>Add a call-to-action</li>
-                <li>Make it unique for each page</li>
+                <li>{t.seo.metaTip1}</li>
+                <li>{t.seo.metaTip2}</li>
+                <li>{t.seo.metaTip3}</li>
+                <li>{t.seo.metaTip4}</li>
+                <li>{t.seo.metaTip5}</li>
               </ul>
             </div>
           </div>
@@ -265,13 +363,13 @@ export default function SEOPage() {
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="pt-6">
             <div className="space-y-2">
-              <h3 className="font-semibold text-blue-900">💡 How to use:</h3>
+              <h3 className="font-semibold text-blue-900">💡 {t.seo.howToUse}</h3>
               <ol className="list-decimal list-inside text-blue-800 space-y-1">
-                <li>Enter your target keywords (separated by commas)</li>
-                <li>Optionally add a summary or context</li>
-                <li>Click "Generate SEO" to create optimized suggestions</li>
-                <li>Review quality scores and copy the best options</li>
-                <li>Use the suggestions for your web pages or blog posts</li>
+                <li>{t.seo.step1}</li>
+                <li>{t.seo.step2}</li>
+                <li>{t.seo.step3}</li>
+                <li>{t.seo.step4}</li>
+                <li>{t.seo.step5}</li>
               </ol>
             </div>
           </CardContent>

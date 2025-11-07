@@ -32,12 +32,13 @@ export async function fetchNewsFromRSS(
   try {
     const feed = await parser.parseURL(rssUrl);
 
-    return feed.items.slice(0, 20).map(item => ({
+    // 每个源获取50条新闻（之前是20条）
+    return feed.items.slice(0, 50).map(item => ({
       id: generateId(),
       title: item.title || 'Untitled',
       summary: item.contentSnippet || item.content || item.description || '',
       link: item.link || '#',
-      pubDate: item.pubDate || item.isoDate || new Date().toISOString(),
+      publishDate: item.pubDate || item.isoDate || new Date().toISOString(),
       source: sourceName || feed.title || 'Unknown',
       region,
     }));
