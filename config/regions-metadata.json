@@ -1,0 +1,34 @@
+{
+  "regions": [
+    {
+      "id": "singapore",
+      "nameEn": "Singapore",
+      "nameZh": "新加坡",
+      "timezone": "Asia/Singapore",
+      "languages": ["en"],
+      "flag": "🇸🇬",
+      "enabled": true,
+      "order": 1
+    },
+    {
+      "id": "shanghai",
+      "nameEn": "Shanghai",
+      "nameZh": "上海",
+      "timezone": "Asia/Shanghai",
+      "languages": ["zh"],
+      "flag": "🇨🇳",
+      "enabled": true,
+      "order": 2
+    },
+    {
+      "id": "hongkong",
+      "nameEn": "Hong Kong",
+      "nameZh": "香港",
+      "timezone": "Asia/Hong_Kong",
+      "languages": ["en", "zh"],
+      "flag": "🇭🇰",
+      "enabled": true,
+      "order": 3
+    }
+  ]
+}

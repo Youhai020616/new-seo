@@ -17,6 +17,7 @@ export const zh: TranslationKeys = {
     allRegions: '所有地区',
     singapore: '新加坡',
     shanghai: '上海',
+    hongkong: '香港',
     extractKeywords: '提取关键词',
     extracting: '提取中...',
     keywordsFound: '个关键词',
@@ -48,6 +49,7 @@ export const zh: TranslationKeys = {
     subtitle: '使用TF-IDF算法提取热门关键词',
     analyzingNews: '正在分析来自',
     clear: '清除',
+    customAnalysis: '自定义分析',
     textInput: '文本输入',
     textInputDesc: '输入您的文本内容进行关键词分析',
     placeholder: '在此粘贴您的文章、新闻内容或任何文本...',
@@ -72,6 +74,15 @@ export const zh: TranslationKeys = {
     step2: '点击"提取关键词"来分析文本',
     step3: '算法将识别出前10个最相关的关键词',
     step4: '结果按TF-IDF评分排序（越高越相关）',
+    // 热点关键词
+    trendingTitle: '热点关键词推荐',
+    trendingDesc: '基于最近24小时的新闻分析',
+    refresh: '刷新',
+    retry: '重试',
+    noTrending: '暂无热点关键词数据',
+    newsCount: '篇',
+    ago: '前',
+    freq: '频率',
   },
 
   // SEO页面

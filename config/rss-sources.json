@@ -39,6 +39,21 @@
       "name": "澎湃新闻",
       "url": "https://www.thepaper.cn/rss.jsp",
       "region": "shanghai"
+    },
+    {
+      "name": "South China Morning Post",
+      "url": "https://www.scmp.com/rss/91/feed",
+      "region": "hongkong"
+    },
+    {
+      "name": "Hong Kong Free Press",
+      "url": "https://www.hongkongfp.com/feed/",
+      "region": "hongkong"
+    },
+    {
+      "name": "The Standard HK",
+      "url": "https://www.thestandard.com.hk/newsfeed/latest/news.xml",
+      "region": "hongkong"
     }
   ]
 }

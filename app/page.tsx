@@ -13,7 +13,7 @@ import { useNewsStore } from '@/store/useNewsStore';
 import { useI18n } from '@/lib/i18n/context';
 import { SentimentBadge, TrendChart } from '@/components/ai';
 
-type Region = 'all' | 'singapore' | 'shanghai';
+type Region = 'all' | 'singapore' | 'shanghai' | 'hongkong';
 type VisualizationType = 'list' | 'cloud' | 'chart';
 
 export default function HomePage() {
@@ -196,6 +196,12 @@ export default function HomePage() {
               onClick={() => handleRegionChange('shanghai')}
             >
               {t.news.shanghai}
+            </Button>
+            <Button
+              variant={selectedRegion === 'hongkong' ? 'default' : 'outline'}
+              onClick={() => handleRegionChange('hongkong')}
+            >
+              {t.news.hongkong}
             </Button>
           </div>
         </CardContent>

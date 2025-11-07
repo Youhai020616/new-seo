@@ -6,12 +6,14 @@ import type { Keyword } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import KeywordCloud from '@/components/KeywordCloud';
 import KeywordChart from '@/components/KeywordChart';
 import Breadcrumb from '@/components/Breadcrumb';
 import { useNewsStore } from '@/store/useNewsStore';
 import { useI18n } from '@/lib/i18n/context';
 import { KeywordClusterView } from '@/components/ai';
+import TrendingKeywordsList from '@/components/keywords/TrendingKeywordsList';
 
 type VisualizationType = 'list' | 'cloud' | 'chart';
 
@@ -105,8 +107,28 @@ export default function KeywordsPage() {
         </p>
       </div>
 
-      {/* Data Source Notification */}
-      {dataFromNews && selectedNews && (
+      {/* Tabs Navigation */}
+      <Tabs defaultValue="custom" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 max-w-[500px]">
+          <TabsTrigger value="trending" className="gap-2">
+            <span>🔥</span>
+            <span>{t.keywords.trendingTitle || '热点推荐'}</span>
+          </TabsTrigger>
+          <TabsTrigger value="custom" className="gap-2">
+            <span>✍️</span>
+            <span>{t.keywords.customAnalysis || '自定义分析'}</span>
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Tab 1: Trending Keywords */}
+        <TabsContent value="trending" className="mt-6">
+          <TrendingKeywordsList region="all" limit={20} />
+        </TabsContent>
+
+        {/* Tab 2: Custom Analysis */}
+        <TabsContent value="custom" className="mt-6 space-y-8">
+          {/* Data Source Notification */}
+          {dataFromNews && selectedNews && (
         <Card className="bg-blue-50 border-blue-300">
           <CardContent className="py-4">
             <div className="flex items-start justify-between gap-4">
@@ -323,6 +345,8 @@ export default function KeywordsPage() {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

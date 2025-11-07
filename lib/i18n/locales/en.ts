@@ -15,6 +15,7 @@ export const en = {
     allRegions: 'All Regions',
     singapore: 'Singapore',
     shanghai: 'Shanghai',
+    hongkong: 'Hong Kong',
     extractKeywords: 'Extract Keywords',
     extracting: 'Extracting...',
     keywordsFound: 'keywords found',
@@ -46,6 +47,7 @@ export const en = {
     subtitle: 'Extract top keywords using TF-IDF algorithm',
     analyzingNews: 'Analyzing news from',
     clear: 'Clear',
+    customAnalysis: 'Custom Analysis',
     textInput: 'Text Input',
     textInputDesc: 'Enter your text content for keyword analysis',
     placeholder: 'Paste your article, news content, or any text here...',
@@ -70,6 +72,15 @@ export const en = {
     step2: 'Click "Extract Keywords" to analyze the text',
     step3: 'The algorithm will identify the top 10 most relevant keywords',
     step4: 'Results are sorted by TF-IDF score (higher = more relevant)',
+    // Trending Keywords
+    trendingTitle: 'Trending Keywords',
+    trendingDesc: 'Based on news from the last 24 hours',
+    refresh: 'Refresh',
+    retry: 'Retry',
+    noTrending: 'No trending keywords available',
+    newsCount: 'articles',
+    ago: 'ago',
+    freq: 'Freq',
   },
 
   // SEO Page
