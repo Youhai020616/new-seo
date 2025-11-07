@@ -3,6 +3,10 @@ import type { NextRequest } from 'next/server';
 import { clusterKeywords, getClusterStats } from '@/lib/ai/services/keyword-cluster-service';
 import type { Keyword } from '@/types';
 
+// Configure API route
+export const maxDuration = 25; // Maximum execution time: 25 seconds
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

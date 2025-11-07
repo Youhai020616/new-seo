@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { generateAISummary, type SummaryLength } from '@/lib/ai/services/summary-service';
 
+// Configure API route
+export const maxDuration = 30; // Maximum execution time: 30 seconds
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

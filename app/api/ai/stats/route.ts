@@ -3,6 +3,10 @@ import type { NextRequest } from 'next/server';
 import { globalCostTracker, checkBudget, type BudgetConfig } from '@/lib/ai/utils/cost-tracker';
 import { GlobalCacheManager } from '@/lib/ai/utils/cache-manager';
 
+// Configure API route
+export const maxDuration = 10; // Maximum execution time: 10 seconds
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/ai/stats
  * Get AI usage statistics

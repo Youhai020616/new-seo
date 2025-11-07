@@ -3,6 +3,10 @@ import type { NextRequest } from 'next/server';
 import { analyzeTrends, getTrendStats } from '@/lib/ai/services/trend-service';
 import type { NewsItem } from '@/types';
 
+// Configure API route
+export const maxDuration = 30; // Maximum execution time: 30 seconds
+export const dynamic = 'force-dynamic'; // Disable static optimization
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

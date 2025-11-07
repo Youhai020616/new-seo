@@ -143,6 +143,12 @@ export const RetryPresets = {
     backoff: 'exponential' as const,
     timeout: 30000, // 30 seconds
   },
+  // Quick retry with shorter timeout (for trend analysis)
+  quick: {
+    maxRetries: 2,
+    backoff: 'linear' as const,
+    timeout: 15000, // 15 seconds
+  },
   // Aggressive retry for critical operations
   aggressive: {
     maxRetries: 5,

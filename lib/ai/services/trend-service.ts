@@ -243,7 +243,7 @@ export async function analyzeTrends(
           },
         };
       },
-      RetryPresets.standard
+      RetryPresets.quick // Use quick retry preset (15s timeout, 2 retries)
     );
 
   // Fallback function

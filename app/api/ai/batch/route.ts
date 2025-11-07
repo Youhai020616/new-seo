@@ -7,6 +7,10 @@ import { generateAIMeta } from '@/lib/ai/services/meta-service';
 import { clusterKeywords } from '@/lib/ai/services/keyword-cluster-service';
 import type { Keyword } from '@/types';
 
+// Configure API route
+export const maxDuration = 60; // Maximum execution time: 60 seconds for batch operations
+export const dynamic = 'force-dynamic';
+
 export type TaskType = 'summary' | 'sentiment' | 'seo-title' | 'seo-meta' | 'keyword-cluster';
 export type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed';
 

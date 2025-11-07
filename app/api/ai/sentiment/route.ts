@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { analyzeSentiment } from '@/lib/ai/services/sentiment-service';
 
+// Configure API route
+export const maxDuration = 20; // Maximum execution time: 20 seconds
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
