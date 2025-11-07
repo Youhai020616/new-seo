@@ -11,6 +11,7 @@ import KeywordChart from '@/components/KeywordChart';
 import Breadcrumb from '@/components/Breadcrumb';
 import { useNewsStore } from '@/store/useNewsStore';
 import { useI18n } from '@/lib/i18n/context';
+import { KeywordClusterView } from '@/components/ai';
 
 type VisualizationType = 'list' | 'cloud' | 'chart';
 
@@ -80,33 +81,7 @@ export default function KeywordsPage() {
       const newsText = `${selectedNews.title}\n\n${selectedNews.summary}`;
       setInputText(newsText);
       setDataFromNews(true);
-
-      // 自动触发关键词提取
-      setTimeout(() => {
-        const autoExtract = async () => {
-          setLoading(true);
-          setError(null);
-
-          try {
-            const response = await fetch('/api/keywords', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ texts: [newsText] }),
-            });
-
-            const data = await response.json();
-            if (data.success) {
-              setKeywords(data.keywords);
-              setExtractedKeywords(data.keywords);
-            }
-          } catch (err) {
-            console.error('Auto-extract error:', err);
-          } finally {
-            setLoading(false);
-          }
-        };
-        autoExtract();
-      }, 100);
+      // 不再自动提取关键词，让用户手动点击"提取关键词"按钮
     }
   }, [selectedNews, analysisSource]);
 
@@ -315,6 +290,20 @@ export default function KeywordsPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* AI Keyword Clustering */}
+          {keywords.length >= 3 && (
+            <div>
+              <h3 className="text-xl font-bold mb-4">
+                🤖 AI 关键词聚类分析
+              </h3>
+              <KeywordClusterView
+                keywords={keywords.map(kw => ({ keyword: kw.word, volume: kw.frequency * 100 }))}
+                numClusters={Math.min(3, Math.floor(keywords.length / 3))}
+                language={dataFromNews && selectedNews?.region === 'singapore' ? 'en' : 'zh'}
+              />
+            </div>
+          )}
         </>
       )}
 

@@ -97,6 +97,12 @@ export const useNewsStore = create<NewsStore>()(
     {
       name: 'news-seo-storage',
       partialize: (state) => ({
+        // 持久化新闻数据和所有分析结果
+        news: state.news,
+        selectedRegion: state.selectedRegion,
+        keywords: state.keywords,
+        seoTitles: state.seoTitles,
+        seoMeta: state.seoMeta,
         selectedNews: state.selectedNews,
         extractedKeywords: state.extractedKeywords,
         analysisSource: state.analysisSource,

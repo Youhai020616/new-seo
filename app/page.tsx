@@ -11,6 +11,7 @@ import KeywordCloud from '@/components/KeywordCloud';
 import KeywordChart from '@/components/KeywordChart';
 import { useNewsStore } from '@/store/useNewsStore';
 import { useI18n } from '@/lib/i18n/context';
+import { SentimentBadge, TrendChart } from '@/components/ai';
 
 type Region = 'all' | 'singapore' | 'shanghai';
 type VisualizationType = 'list' | 'cloud' | 'chart';
@@ -18,22 +19,38 @@ type VisualizationType = 'list' | 'cloud' | 'chart';
 export default function HomePage() {
   const router = useRouter();
   const { t } = useI18n();
-  const { setSelectedNews, setAnalysisSource } = useNewsStore();
+  
+  // 使用 store 中的状态
+  const {
+    news,
+    selectedRegion,
+    loading,
+    error,
+    keywords,
+    keywordsLoading,
+    seoTitles,
+    seoMeta,
+    seoLoading,
+    setNews,
+    setSelectedRegion: setStoreRegion,
+    setLoading,
+    setError,
+    setKeywords,
+    setKeywordsLoading,
+    setSeoTitles,
+    setSeoMeta,
+    setSeoLoading,
+    setSelectedNews,
+    setAnalysisSource,
+  } = useNewsStore();
 
-  const [news, setNews] = useState<NewsItem[]>([]);
-  const [selectedRegion, setSelectedRegion] = useState<Region>('all');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [displayCount, setDisplayCount] = useState(40); // 默认显示40篇
-
-  // Keywords state
-  const [keywords, setKeywords] = useState<Keyword[]>([]);
-  const [keywordsLoading, setKeywordsLoading] = useState(false);
   const [visualType, setVisualType] = useState<VisualizationType>('list');
 
-  // SEO state
-  const [seoData, setSeoData] = useState<any>(null);
-  const [seoLoading, setSeoLoading] = useState(false);
+  // 组装 SEO 数据用于显示
+  const seoData = seoTitles.length > 0 || seoMeta.length > 0 
+    ? { titles: seoTitles, metaDescriptions: seoMeta }
+    : null;
 
   // Fetch news
   const fetchNews = async (region: Region) => {
@@ -99,7 +116,8 @@ export default function HomePage() {
 
       const data = await response.json();
       if (data.success) {
-        setSeoData(data);
+        setSeoTitles(data.titles || []);
+        setSeoMeta(data.metaDescriptions || []);
       }
     } catch (err) {
       console.error('SEO error:', err);
@@ -111,7 +129,8 @@ export default function HomePage() {
   // 清除关键词和SEO结果
   const clearResults = () => {
     setKeywords([]);
-    setSeoData(null);
+    setSeoTitles([]);
+    setSeoMeta([]);
   };
 
   // 加载更多新闻
@@ -126,13 +145,21 @@ export default function HomePage() {
     router.push('/keywords');
   };
 
-  // Initial load
-  useEffect(() => {
-    fetchNews(selectedRegion);
-    // 切换地区时重置显示数量和结果
+  // 切换地区的处理函数
+  const handleRegionChange = (region: Region) => {
+    setStoreRegion(region);
     setDisplayCount(40);
     clearResults();
-  }, [selectedRegion]);
+    // 切换地区时立即加载新闻
+    fetchNews(region);
+  };
+
+  // 只在首次加载且新闻为空时才加载
+  useEffect(() => {
+    if (news.length === 0 && !loading) {
+      fetchNews(selectedRegion);
+    }
+  }, []);
 
   return (
     <div className="space-y-8">
@@ -154,19 +181,19 @@ export default function HomePage() {
           <div className="flex gap-2">
             <Button
               variant={selectedRegion === 'all' ? 'default' : 'outline'}
-              onClick={() => setSelectedRegion('all')}
+              onClick={() => handleRegionChange('all')}
             >
               {t.news.allRegions}
             </Button>
             <Button
               variant={selectedRegion === 'singapore' ? 'default' : 'outline'}
-              onClick={() => setSelectedRegion('singapore')}
+              onClick={() => handleRegionChange('singapore')}
             >
               {t.news.singapore}
             </Button>
             <Button
               variant={selectedRegion === 'shanghai' ? 'default' : 'outline'}
-              onClick={() => setSelectedRegion('shanghai')}
+              onClick={() => handleRegionChange('shanghai')}
             >
               {t.news.shanghai}
             </Button>
@@ -360,6 +387,7 @@ export default function HomePage() {
                   <div className="flex items-center gap-2 mt-3 flex-wrap">
                     <Badge variant="secondary">{item.source}</Badge>
                     <Badge variant="default">{item.region}</Badge>
+                    <SentimentBadge content={item.summary} language={selectedRegion === 'singapore' ? 'en' : 'zh'} showDetails={false} />
                     <span className="text-sm text-gray-500">
                       {formatDate(item.publishDate)}
                     </span>
@@ -394,6 +422,20 @@ export default function HomePage() {
             </p>
           </CardContent>
         </Card>
+      )}
+
+      {/* AI Trend Analysis */}
+      {!loading && !error && news.length >= 3 && (
+        <div>
+          <h2 className="text-2xl font-bold mb-4">
+            📈 AI 趋势分析
+          </h2>
+          <TrendChart
+            newsItems={news.slice(0, 50)}
+            timeRange="week"
+            language={selectedRegion === 'singapore' ? 'en' : 'zh'}
+          />
+        </div>
       )}
     </div>
   );

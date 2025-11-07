@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import Breadcrumb from '@/components/Breadcrumb';
 import { useNewsStore } from '@/store/useNewsStore';
 import { useI18n } from '@/lib/i18n/context';
+import { AISummaryCard } from '@/components/ai';
 
 export default function SEOPage() {
   const { t } = useI18n();
@@ -90,34 +91,7 @@ export default function SEOPage() {
         setSummaryInput(selectedNews.summary);
       }
 
-      // 自动触发 SEO 生成
-      setTimeout(() => {
-        const autoGenerate = async () => {
-          setLoading(true);
-          setError(null);
-
-          try {
-            const response = await fetch('/api/seo', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                keywords: extractedKeywords,
-                summary: selectedNews?.summary || 'Generate SEO content based on keywords',
-              }),
-            });
-
-            const data = await response.json();
-            if (data.success) {
-              setSeoData(data);
-            }
-          } catch (err) {
-            console.error('Auto-generate SEO error:', err);
-          } finally {
-            setLoading(false);
-          }
-        };
-        autoGenerate();
-      }, 100);
+      // 不再自动生成 SEO，让用户手动点击"生成 SEO 建议"按钮
     }
   }, [extractedKeywords, analysisSource, selectedNews]);
 
@@ -324,6 +298,20 @@ export default function SEOPage() {
               </div>
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {/* AI Content Summary */}
+      {summaryInput && summaryInput.length > 100 && (
+        <div>
+          <h3 className="text-xl font-bold mb-4">
+            ✨ AI 内容摘要
+          </h3>
+          <AISummaryCard
+            content={summaryInput}
+            language={selectedNews?.region === 'singapore' ? 'en' : 'zh'}
+            defaultLength="medium"
+          />
         </div>
       )}
 
