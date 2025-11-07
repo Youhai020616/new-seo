@@ -43,9 +43,19 @@ export async function POST(request: NextRequest) {
       useCache: true,
     });
 
+    // Transform summaries array to object format expected by frontend
+    const summaryObject = result.summaries.reduce((acc, summary) => {
+      acc[summary.type] = summary.text;
+      return acc;
+    }, {} as Record<SummaryLength, string>);
+
     return NextResponse.json({
       success: true,
-      data: result,
+      data: {
+        summary: summaryObject,
+        usage: result.usage,
+        cached: result.cached,
+      },
     });
   } catch (error) {
     console.error('Summary API error:', error);

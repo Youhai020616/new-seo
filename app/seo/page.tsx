@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import type { Keyword } from '@/types';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { GlassCard, GlassButton, GlassBadge } from '@/components/ui/glass-card';
+import { SEOBestPractices } from '@/components/ui/seo-best-practices';
 import Breadcrumb from '@/components/Breadcrumb';
 import { useNewsStore } from '@/store/useNewsStore';
 import { useI18n } from '@/lib/i18n/context';
 import { AISummaryCard } from '@/components/ai';
+import { Sparkles, Copy, Trash2, AlertCircle } from 'lucide-react';
 
 export default function SEOPage() {
   const { t } = useI18n();
@@ -125,8 +125,8 @@ export default function SEOPage() {
 
       {/* Data Source Notification */}
       {dataFromKeywords && extractedKeywords.length > 0 && (
-        <Card className="bg-purple-50 border-purple-300">
-          <CardContent className="py-4">
+        <GlassCard className="bg-gradient-to-br from-purple-50 to-pink-50">
+          <div className="py-4 px-6">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
                 <p className="font-semibold text-purple-900 mb-1">
@@ -137,35 +137,34 @@ export default function SEOPage() {
                   {extractedKeywords.length > 5 && '...'}
                 </p>
               </div>
-              <Button
+              <GlassButton
                 onClick={clearAll}
-                variant="outline"
-                size="sm"
+                variant="secondary"
                 className="shrink-0"
               >
+                <Trash2 className="w-4 h-4 mr-2" />
                 {t.seo.clear}
-              </Button>
+              </GlassButton>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </GlassCard>
       )}
 
       {/* Input Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t.seo.seoInput}</CardTitle>
-          <CardDescription>
-            {t.seo.seoInputDesc}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <GlassCard className="p-6">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">{t.seo.seoInput}</h2>
+          <p className="text-gray-600">{t.seo.seoInputDesc}</p>
+        </div>
+        
+        <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t.seo.keywordsRequired}
             </label>
             <input
               type="text"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 bg-white/40 backdrop-blur-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               placeholder={t.seo.keywordsPlaceholder}
               value={keywordInput}
               onChange={(e) => setKeywordInput(e.target.value)}
@@ -177,7 +176,7 @@ export default function SEOPage() {
               {t.seo.summaryLabel}
             </label>
             <textarea
-              className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="w-full h-32 px-4 py-3 bg-white/40 backdrop-blur-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
               placeholder={t.seo.summaryPlaceholder}
               value={summaryInput}
               onChange={(e) => setSummaryInput(e.target.value)}
@@ -185,124 +184,124 @@ export default function SEOPage() {
           </div>
 
           <div className="flex gap-3">
-            <Button
+            <GlassButton
               onClick={generateSEO}
               disabled={loading || !keywordInput.trim()}
-              size="lg"
+              variant="primary"
+              className="px-6 py-3"
             >
-              {loading ? t.seo.generating : `✨ ${t.seo.generateSEO}`}
-            </Button>
-            <Button
+              <Sparkles className="w-5 h-5 mr-2" />
+              {loading ? t.seo.generating : t.seo.generateSEO}
+            </GlassButton>
+            <GlassButton
               onClick={clearAll}
-              variant="outline"
-              size="lg"
+              variant="secondary"
+              className="px-6 py-3"
               disabled={!keywordInput && !summaryInput && !seoData}
             >
+              <Trash2 className="w-5 h-5 mr-2" />
               {t.seo.clearAll}
-            </Button>
+            </GlassButton>
           </div>
 
           {error && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-600">❌ {error}</p>
+            <div className="p-4 bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-xl">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+                <p className="text-red-600">{error}</p>
+              </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </GlassCard>
 
       {/* Results Section */}
       {seoData && (
         <div className="grid md:grid-cols-2 gap-6">
           {/* SEO Titles */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t.seo.seoTitles}</CardTitle>
-              <CardDescription>
-                {t.seo.optimizedTitles}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {seoData.titles.map((item: any, idx: number) => (
-                  <div
-                    key={idx}
-                    className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="font-medium text-gray-900 flex-1">
-                        {item.title}
-                      </p>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => copyToClipboard(item.title)}
-                      >
-                        📋 {t.seo.copy}
-                      </Button>
-                    </div>
-                    <div className="mt-3 flex items-center gap-2 flex-wrap">
-                      <Badge
-                        variant={item.score >= 80 ? 'success' : item.score >= 60 ? 'warning' : 'danger'}
-                      >
-                        {t.seo.score}: {item.score}/100
-                      </Badge>
-                      <span className="text-sm text-gray-500">
-                        {t.seo.length}: {item.title.length} {t.seo.chars}
-                      </span>
-                    </div>
+          <GlassCard className="p-6">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">{t.seo.seoTitles}</h2>
+              <p className="text-gray-600">{t.seo.optimizedTitles}</p>
+            </div>
+            
+            <div className="space-y-4">
+              {seoData.titles.map((item: any, idx: number) => (
+                <div
+                  key={idx}
+                  className="p-4 bg-white/30 backdrop-blur-sm rounded-xl border border-white/20 hover:bg-white/40 transition-all duration-300 hover:shadow-lg group"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-medium text-gray-900 flex-1">
+                      {item.title}
+                    </p>
+                    <GlassButton
+                      variant="secondary"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => copyToClipboard(item.title)}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </GlassButton>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  <div className="mt-3 flex items-center gap-2 flex-wrap">
+                    <GlassBadge
+                      variant={item.score >= 80 ? 'success' : item.score >= 60 ? 'warning' : 'default'}
+                    >
+                      {t.seo.score}: {item.score}/100
+                    </GlassBadge>
+                    <span className="text-sm text-gray-500">
+                      {t.seo.length}: {item.title.length} {t.seo.chars}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
 
           {/* Meta Descriptions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t.seo.metaDescriptions}</CardTitle>
-              <CardDescription>
-                {t.seo.optimizedDesc}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {seoData.metaDescriptions.map((item: any, idx: number) => (
-                  <div
-                    key={idx}
-                    className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm text-gray-700 flex-1">
-                        {item.description}
-                      </p>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => copyToClipboard(item.description)}
-                      >
-                        📋 {t.seo.copy}
-                      </Button>
-                    </div>
-                    <div className="mt-3 flex items-center gap-2 flex-wrap">
-                      <Badge
-                        variant={item.score >= 80 ? 'success' : item.score >= 60 ? 'warning' : 'danger'}
-                      >
-                        {t.seo.score}: {item.score}/100
-                      </Badge>
-                      <span className="text-sm text-gray-500">
-                        {t.seo.length}: {item.description.length} {t.seo.chars}
-                      </span>
-                    </div>
+          <GlassCard className="p-6">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">{t.seo.metaDescriptions}</h2>
+              <p className="text-gray-600">{t.seo.optimizedDesc}</p>
+            </div>
+            
+            <div className="space-y-4">
+              {seoData.metaDescriptions.map((item: any, idx: number) => (
+                <div
+                  key={idx}
+                  className="p-4 bg-white/30 backdrop-blur-sm rounded-xl border border-white/20 hover:bg-white/40 transition-all duration-300 hover:shadow-lg group"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm text-gray-700 flex-1">
+                      {item.description}
+                    </p>
+                    <GlassButton
+                      variant="secondary"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => copyToClipboard(item.description)}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </GlassButton>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  <div className="mt-3 flex items-center gap-2 flex-wrap">
+                    <GlassBadge
+                      variant={item.score >= 80 ? 'success' : item.score >= 60 ? 'warning' : 'default'}
+                    >
+                      {t.seo.score}: {item.score}/100
+                    </GlassBadge>
+                    <span className="text-sm text-gray-500">
+                      {t.seo.length}: {item.description.length} {t.seo.chars}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
         </div>
       )}
 
       {/* AI Content Summary */}
-      {summaryInput && summaryInput.length > 100 && (
+      {summaryInput && (
         <div>
           <h3 className="text-xl font-bold mb-4">
             ✨ AI 内容摘要
@@ -316,52 +315,27 @@ export default function SEOPage() {
       )}
 
       {/* Best Practices */}
-      <Card className="bg-green-50 border-green-200">
-        <CardHeader>
-          <CardTitle className="text-green-900">📖 {t.seo.bestPractices}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-2 gap-6 text-green-800">
-            <div>
-              <h4 className="font-semibold mb-2">{t.seo.titleOptimization}</h4>
-              <ul className="list-disc list-inside space-y-1 text-sm">
-                <li>{t.seo.titleTip1}</li>
-                <li>{t.seo.titleTip2}</li>
-                <li>{t.seo.titleTip3}</li>
-                <li>{t.seo.titleTip4}</li>
-                <li>{t.seo.titleTip5}</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-2">{t.seo.metaTips}</h4>
-              <ul className="list-disc list-inside space-y-1 text-sm">
-                <li>{t.seo.metaTip1}</li>
-                <li>{t.seo.metaTip2}</li>
-                <li>{t.seo.metaTip3}</li>
-                <li>{t.seo.metaTip4}</li>
-                <li>{t.seo.metaTip5}</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <SEOBestPractices language={selectedNews?.region === 'singapore' ? 'en' : 'zh'} />
 
       {/* Help Section */}
       {!seoData && !loading && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="pt-6">
-            <div className="space-y-2">
-              <h3 className="font-semibold text-blue-900">💡 {t.seo.howToUse}</h3>
-              <ol className="list-decimal list-inside text-blue-800 space-y-1">
-                <li>{t.seo.step1}</li>
-                <li>{t.seo.step2}</li>
-                <li>{t.seo.step3}</li>
-                <li>{t.seo.step4}</li>
-                <li>{t.seo.step5}</li>
-              </ol>
-            </div>
-          </CardContent>
-        </Card>
+        <GlassCard className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50">
+          <div className="space-y-3">
+            <h3 className="font-semibold text-blue-900 text-lg flex items-center gap-2">
+              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                💡
+              </div>
+              {t.seo.howToUse}
+            </h3>
+            <ol className="list-decimal list-inside text-blue-800 space-y-2 ml-4">
+              <li className="pl-2">{t.seo.step1}</li>
+              <li className="pl-2">{t.seo.step2}</li>
+              <li className="pl-2">{t.seo.step3}</li>
+              <li className="pl-2">{t.seo.step4}</li>
+              <li className="pl-2">{t.seo.step5}</li>
+            </ol>
+          </div>
+        </GlassCard>
       )}
     </div>
   );
