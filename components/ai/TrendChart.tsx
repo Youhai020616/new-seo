@@ -35,6 +35,7 @@ export function TrendChart({
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['trending', 'insights'])
   );
+  const [hasAnalyzed, setHasAnalyzed] = useState(false); // Track if analysis has been triggered
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => {
@@ -58,6 +59,7 @@ export function TrendChart({
 
     setLoading(true);
     setError(null);
+    setHasAnalyzed(true); // Mark as analyzed
 
     try {
       const response = await fetch('/api/ai/trend', {
@@ -91,9 +93,55 @@ export function TrendChart({
     }
   };
 
-  useEffect(() => {
-    fetchTrends();
-  }, [newsItems, timeRange, focusArea]);
+  // Remove auto-fetch on mount - now requires manual trigger
+  // useEffect(() => {
+  //   fetchTrends();
+  // }, [newsItems, timeRange, focusArea]);
+
+  // Show initial state with analyze button
+  if (!hasAnalyzed && !loading && !trendData) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
+            <BarChart3 className="w-8 h-8 text-blue-500" />
+          </div>
+          <div className="text-center space-y-2">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {language === 'zh' ? 'AI 趋势分析' : 'AI Trend Analysis'}
+            </h3>
+            <p className="text-sm text-gray-600 max-w-md">
+              {language === 'zh' 
+                ? '点击按钮开始分析新闻趋势，识别热门话题和新兴趋势' 
+                : 'Click to analyze news trends and identify hot topics'}
+            </p>
+            <div className="pt-2">
+              <span className="text-xs text-gray-500">
+                {language === 'zh' 
+                  ? `已加载 ${newsItems?.length || 0} 条新闻` 
+                  : `${newsItems?.length || 0} news items loaded`}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={fetchTrends}
+            disabled={!newsItems || newsItems.length < 3}
+            className="px-6 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+          >
+            <BarChart3 className="w-5 h-5" />
+            {language === 'zh' ? '开始分析' : 'Start Analysis'}
+          </button>
+          {newsItems && newsItems.length < 3 && (
+            <p className="text-xs text-red-500">
+              {language === 'zh' 
+                ? '至少需要 3 条新闻才能进行趋势分析' 
+                : 'At least 3 news items required'}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   const getPredictionConfig = (prediction: string) => {
     const configs = {

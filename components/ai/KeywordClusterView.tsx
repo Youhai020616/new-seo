@@ -20,6 +20,7 @@ export function KeywordClusterView({
   const [selectedCluster, setSelectedCluster] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['clusters']));
+  const [hasAnalyzed, setHasAnalyzed] = useState(false); // Track if analysis has been triggered
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => {
@@ -43,6 +44,7 @@ export function KeywordClusterView({
 
     setLoading(true);
     setError(null);
+    setHasAnalyzed(true); // Mark as analyzed
 
     try {
       const response = await fetch('/api/ai/keywords/cluster', {
@@ -75,9 +77,55 @@ export function KeywordClusterView({
     }
   };
 
-  useEffect(() => {
-    fetchClusters();
-  }, [keywords, numClusters]);
+  // Remove auto-fetch on mount - now requires manual trigger
+  // useEffect(() => {
+  //   fetchClusters();
+  // }, [keywords, numClusters]);
+
+  // Show initial state with analyze button
+  if (!hasAnalyzed && !loading && !clusterData) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center">
+            <Network className="w-8 h-8 text-purple-500" />
+          </div>
+          <div className="text-center space-y-2">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {language === 'zh' ? 'AI 关键词聚类分析' : 'AI Keyword Clustering'}
+            </h3>
+            <p className="text-sm text-gray-600 max-w-md">
+              {language === 'zh' 
+                ? '点击按钮使用 AI 进行语义聚类分析，识别关键词主题和关系' 
+                : 'Click to perform AI-powered semantic clustering'}
+            </p>
+            <div className="pt-2">
+              <span className="text-xs text-gray-500">
+                {language === 'zh' 
+                  ? `已提取 ${keywords?.length || 0} 个关键词` 
+                  : `${keywords?.length || 0} keywords extracted`}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={fetchClusters}
+            disabled={!keywords || keywords.length < 3}
+            className="px-6 py-3 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+          >
+            <Network className="w-5 h-5" />
+            {language === 'zh' ? '开始聚类分析' : 'Start Clustering'}
+          </button>
+          {keywords && keywords.length < 3 && (
+            <p className="text-xs text-red-500">
+              {language === 'zh' 
+                ? '至少需要 3 个关键词才能进行聚类分析' 
+                : 'At least 3 keywords required'}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
