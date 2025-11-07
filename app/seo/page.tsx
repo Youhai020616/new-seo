@@ -314,9 +314,6 @@ export default function SEOPage() {
         </div>
       )}
 
-      {/* Best Practices */}
-      <SEOBestPractices language={selectedNews?.region === 'singapore' ? 'en' : 'zh'} />
-
       {/* Help Section */}
       {!seoData && !loading && (
         <GlassCard className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50">
