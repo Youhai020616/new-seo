@@ -4,6 +4,7 @@ export const en = {
     news: 'News',
     keywords: 'Keywords',
     seo: 'SEO Assistant',
+    ai: 'AI Features',
   },
 
   // News Page

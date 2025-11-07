@@ -3,60 +3,176 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/lib/i18n/context';
+import { useSidebar } from '@/lib/contexts/SidebarContext';
 import LanguageSwitcher from './LanguageSwitcher';
+import { 
+  Newspaper, 
+  KeyRound, 
+  FileSearch, 
+  Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  X
+} from 'lucide-react';
 
 export default function Navigation() {
   const pathname = usePathname();
   const { t } = useI18n();
+  const { collapsed, setCollapsed, mobileOpen, setMobileOpen } = useSidebar();
 
   const navItems = [
-    { href: '/', label: t.nav.news },
-    { href: '/keywords', label: t.nav.keywords },
-    { href: '/seo', label: t.nav.seo },
+    { 
+      href: '/', 
+      label: t.nav.news,
+      icon: Newspaper,
+      description: t.nav.news
+    },
+    { 
+      href: '/keywords', 
+      label: t.nav.keywords,
+      icon: KeyRound,
+      description: t.nav.keywords
+    },
+    { 
+      href: '/seo', 
+      label: t.nav.seo,
+      icon: FileSearch,
+      description: t.nav.seo
+    },
+    { 
+      href: '/ai', 
+      label: t.nav.ai,
+      icon: Sparkles,
+      description: t.nav.ai
+    },
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200/50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center">
-              <span className="text-xl font-bold text-blue-600">
-                📰 News SEO Assistant
-              </span>
-            </Link>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-1">
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setMobileOpen(!mobileOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-lg hover:shadow-xl transition-shadow"
+      >
+        {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
+
+      {/* Mobile Overlay */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`
+          fixed top-0 left-0 h-screen bg-white/95 backdrop-blur-md 
+          shadow-xl border-r border-gray-200/50 z-40
+          transition-all duration-300 ease-in-out
+          ${collapsed ? 'w-20' : 'w-64'}
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}
+      >
+        <div className="flex flex-col h-full">
+          {/* Logo/Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-200/50">
+            {!collapsed && (
+              <Link href="/" className="flex items-center gap-2">
+                <span className="text-2xl">📰</span>
+                <div className="flex flex-col">
+                  <span className="text-lg font-bold text-blue-600">News SEO</span>
+                  <span className="text-xs text-gray-500">Assistant</span>
+                </div>
+              </Link>
+            )}
+            {collapsed && (
+              <Link href="/" className="mx-auto">
+                <span className="text-2xl">📰</span>
+              </Link>
+            )}
+            
+            {/* Collapse Button - Desktop Only */}
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className={`
+                hidden lg:flex items-center justify-center
+                w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors
+                ${collapsed ? 'mx-auto' : ''}
+              `}
+            >
+              {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+            </button>
+          </div>
+
+          {/* Navigation Items */}
+          <nav className="flex-1 overflow-y-auto py-4 px-2">
+            <div className="space-y-1">
               {navItems.map((item) => {
                 const isActive = pathname === item.href;
+                const Icon = item.icon;
+                
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={() => setMobileOpen(false)}
                     className={`
-                      inline-flex items-center px-4 pt-1 text-sm font-medium
-                      transition-all duration-200 ease-in-out
-                      border-b-2 relative
+                      flex items-center gap-3 px-3 py-3 rounded-lg
+                      transition-all duration-200
+                      ${collapsed ? 'justify-center' : ''}
                       ${
                         isActive
-                          ? 'text-blue-600 border-blue-500'
-                          : 'text-gray-600 border-transparent hover:text-gray-900 hover:border-gray-300'
+                          ? 'bg-blue-500 text-white shadow-md'
+                          : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                       }
                     `}
+                    title={collapsed ? item.label : ''}
                   >
-                    {item.label}
-                    {isActive && (
-                      <span className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-blue-400 to-blue-600" />
+                    <Icon size={20} className="flex-shrink-0" />
+                    {!collapsed && (
+                      <div className="flex flex-col flex-1 min-w-0">
+                        <span className="font-medium truncate">{item.label}</span>
+                        <span className={`text-xs truncate ${isActive ? 'text-blue-100' : 'text-gray-500'}`}>
+                          {item.description}
+                        </span>
+                      </div>
+                    )}
+                    {isActive && !collapsed && (
+                      <div className="w-1 h-6 bg-white/30 rounded-full" />
                     )}
                   </Link>
                 );
               })}
             </div>
+          </nav>
+
+          {/* Footer - Language Switcher */}
+          <div className={`
+            border-t border-gray-200/50 p-4
+            ${collapsed ? 'flex justify-center px-2' : ''}
+          `}>
+            {!collapsed && (
+              <div className="mb-3">
+                <p className="text-xs text-gray-500 mb-1">语言设置</p>
+              </div>
+            )}
+            <LanguageSwitcher collapsed={collapsed} />
           </div>
 
-          {/* Language Switcher */}
-          <LanguageSwitcher />
+          {/* Version Info */}
+          {!collapsed && (
+            <div className="px-4 pb-4">
+              <div className="text-xs text-gray-400 text-center">
+                <p>v1.0.0 Beta</p>
+                <p>© 2025 News SEO</p>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
-    </nav>
+      </aside>
+    </>
   );
 }

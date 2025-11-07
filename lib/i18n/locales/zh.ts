@@ -6,6 +6,7 @@ export const zh: TranslationKeys = {
     news: '新闻',
     keywords: '关键词',
     seo: 'SEO助手',
+    ai: 'AI功能',
   },
 
   // 新闻页面
