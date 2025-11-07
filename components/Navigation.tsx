@@ -9,7 +9,6 @@ import {
   Newspaper, 
   KeyRound, 
   FileSearch, 
-  Sparkles,
   ChevronLeft,
   ChevronRight,
   Menu,
@@ -39,12 +38,6 @@ export default function Navigation() {
       label: t.nav.seo,
       icon: FileSearch,
       description: t.nav.seo
-    },
-    { 
-      href: '/ai', 
-      label: t.nav.ai,
-      icon: Sparkles,
-      description: t.nav.ai
     },
   ];
 
