@@ -73,10 +73,28 @@ export function TrendChart({
         }),
       });
 
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get('content-type');
+      const isJson = contentType?.includes('application/json');
+
+      if (!isJson) {
+        // Non-JSON response (likely HTML error page or plain text)
+        const text = await response.text();
+        throw new Error(
+          language === 'zh' 
+            ? `服务器返回非 JSON 响应: ${text.slice(0, 100)}...` 
+            : `Server returned non-JSON response: ${text.slice(0, 100)}...`
+        );
+      }
+
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to analyze trends');
+        throw new Error(result.error || (language === 'zh' ? '分析失败' : 'Failed to analyze trends'));
+      }
+
+      if (!result.success || !result.data) {
+        throw new Error(language === 'zh' ? '无效的响应数据' : 'Invalid response data');
       }
 
       setTrendData(result.data);
@@ -85,7 +103,23 @@ export function TrendChart({
         setSelectedTopic(result.data.trending_topics[0].id);
       }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+      let errorMsg: string;
+      
+      if (err instanceof Error) {
+        errorMsg = err.message;
+      } else if (typeof err === 'string') {
+        errorMsg = err;
+      } else {
+        errorMsg = language === 'zh' ? '未知错误' : 'Unknown error';
+      }
+      
+      // Handle timeout errors specifically
+      if (errorMsg.includes('timeout') || errorMsg.includes('FUNCTION_INVOCATION_TIMEOUT')) {
+        errorMsg = language === 'zh' 
+          ? '分析超时，请减少新闻数量或稍后重试' 
+          : 'Analysis timeout, please reduce news items or try again later';
+      }
+      
       setError(errorMsg);
       onError?.(errorMsg);
     } finally {
