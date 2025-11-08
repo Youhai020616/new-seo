@@ -139,9 +139,9 @@ export const RetryPresets = {
   },
   // Standard retry for most AI calls
   standard: {
-    maxRetries: 3,
-    backoff: 'exponential' as const,
-    timeout: 30000, // 30 seconds
+    maxRetries: 2,
+    backoff: 'linear' as const,
+    timeout: 12000, // 12 seconds per attempt (keeps total under serverless limits)
   },
   // Quick retry with shorter timeout (for trend analysis)
   quick: {

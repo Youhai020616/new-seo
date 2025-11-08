@@ -116,6 +116,7 @@ function analyzeSentimentFallback(content: string): Omit<SentimentResult, 'usage
     keywords: [],
     reasoning: 'Sentiment analyzed using rule-based fallback method',
     intensity,
+    aspects: [],
   };
 }
 
@@ -162,7 +163,7 @@ export async function analyzeSentiment(
     .replace('{language}', language);
 
   // AI function with retry
-  const aiFunction = () =>
+  const aiFunction = (): Promise<Omit<SentimentResult, 'cached'>> =>
     withRetry(
       async () => {
         const response = await deepseek.chat.completions.create({
@@ -208,7 +209,7 @@ export async function analyzeSentiment(
     );
 
   // Fallback function
-  const fallbackFunction = () => {
+  const fallbackFunction = (): Omit<SentimentResult, 'cached'> => {
     console.warn('[Sentiment] AI failed, using rule-based fallback');
     return {
       ...analyzeSentimentFallback(content),
