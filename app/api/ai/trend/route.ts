@@ -51,11 +51,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create a timeout promise (8 seconds to leave buffer for response)
+    // Create a timeout promise (9 seconds to leave buffer for response)
+    // AI call has 6s timeout + 1 retry = max 12s, but we limit to 9s total
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => {
         reject(new Error('ANALYSIS_TIMEOUT'));
-      }, 8000);
+      }, 9000);
     });
 
     // Race between analysis and timeout

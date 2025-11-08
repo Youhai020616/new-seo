@@ -181,10 +181,12 @@ export async function analyzeTrends(
     }
   }
 
-  // Prepare news summary for prompt (limit size)
+  // Prepare news summary for prompt (optimized for speed)
+  // Reduce to 15 items for faster processing while maintaining quality
+  const maxNewsItems = newsItems.length > 20 ? 15 : Math.min(newsItems.length, 20);
   const newsSummary = newsItems
-    .slice(0, 30) // Limit to 30 news items
-    .map((item, index) => `${index + 1}. [${item.publishDate}] ${item.title} - ${item.summary?.slice(0, 100) || ''}`)
+    .slice(0, maxNewsItems)
+    .map((item, index) => `${index + 1}. [${item.publishDate}] ${item.title} - ${item.summary?.slice(0, 80) || ''}`)
     .join('\n');
 
   // Prepare prompt
@@ -208,7 +210,7 @@ export async function analyzeTrends(
             { role: 'user', content: prompt },
           ],
           temperature: 0.7,
-          max_tokens: 2000,
+          max_tokens: 1500, // Reduced from 2000 for faster response
         });
 
         const raw = response.choices?.[0]?.message?.content || '{}';
@@ -243,7 +245,12 @@ export async function analyzeTrends(
           },
         };
       },
-      RetryPresets.quick // Use quick retry preset (15s timeout, 2 retries)
+      // Custom fast retry for trend analysis: 6s timeout, 1 retry max
+      {
+        maxRetries: 1,
+        backoff: 'linear' as const,
+        timeout: 6000,
+      }
     );
 
   // Fallback function
