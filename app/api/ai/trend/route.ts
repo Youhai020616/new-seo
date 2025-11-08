@@ -4,10 +4,13 @@ import { analyzeTrends, getTrendStats } from '@/lib/ai/services/trend-service';
 import type { NewsItem } from '@/types';
 
 // Configure API route
-export const maxDuration = 30; // Maximum execution time: 30 seconds
+// Note: Vercel Free/Hobby plans have 10s timeout, Pro has 60s
+export const maxDuration = 10; // Maximum execution time: 10 seconds (aligned with Vercel limits)
 export const dynamic = 'force-dynamic'; // Disable static optimization
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+  
   try {
     const body = await request.json();
     const { news_items, time_range, focus_area, language } = body as {
@@ -48,16 +51,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Analyze trends
-    const result = await analyzeTrends(news_items, {
-      timeRange: time_range,
-      focusArea: focus_area,
-      language,
-      useCache: true,
+    // Create a timeout promise (8 seconds to leave buffer for response)
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('ANALYSIS_TIMEOUT'));
+      }, 8000);
     });
+
+    // Race between analysis and timeout
+    const result = await Promise.race([
+      analyzeTrends(news_items, {
+        timeRange: time_range,
+        focusArea: focus_area,
+        language,
+        useCache: true,
+      }),
+      timeoutPromise,
+    ]);
 
     // Get trend statistics
     const stats = getTrendStats(result);
+
+    const duration = Date.now() - startTime;
+    console.log(`[TrendAnalysis] Completed in ${duration}ms`);
 
     return NextResponse.json({
       success: true,
@@ -67,13 +83,34 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Trend analysis API error:', error);
+    const duration = Date.now() - startTime;
+    console.error(`[TrendAnalysis] Error after ${duration}ms:`, error);
+
+    // Always return JSON, never throw or return non-JSON responses
+    let errorMessage = 'Failed to analyze trends';
+    let statusCode = 500;
+
+    if (error instanceof Error) {
+      if (error.message === 'ANALYSIS_TIMEOUT') {
+        errorMessage = 'Analysis took too long. Please try with fewer news items or try again later.';
+        statusCode = 408; // Request Timeout
+      } else {
+        errorMessage = error.message;
+      }
+    }
+
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to analyze trends',
+        error: errorMessage,
+        duration,
       },
-      { status: 500 }
+      { 
+        status: statusCode,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
     );
   }
 }
