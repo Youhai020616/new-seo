@@ -212,9 +212,14 @@ export function TrendChart({
             <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
             <BarChart3 className="w-5 h-5 text-blue-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
           </div>
-          <p className="text-sm text-gray-500">
-            {language === 'zh' ? 'AI 正在分析趋势...' : 'Analyzing trends...'}
-          </p>
+          <div className="text-center space-y-1">
+            <p className="text-sm font-medium text-gray-700">
+              {language === 'zh' ? 'AI 正在分析趋势...' : 'Analyzing trends...'}
+            </p>
+            <p className="text-xs text-gray-500">
+              {language === 'zh' ? '这可能需要 5-8 秒' : 'This may take 5-8 seconds'}
+            </p>
+          </div>
         </div>
       </div>
     );
